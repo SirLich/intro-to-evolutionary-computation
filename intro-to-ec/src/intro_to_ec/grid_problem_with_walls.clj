@@ -16,6 +16,10 @@
 (def right [1  0])
 (def all-moves [up down left right])
 
+(defn heuristic
+  [[x y]]
+  (+ (Math/abs x) (Math/abs y)))
+
 (defn apply-move
   "Apply a move to a given position, yielding the new position"
   [position move]

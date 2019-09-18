@@ -1,9 +1,19 @@
 (ns intro-to-ec.search-with-heuristic
-  (:require [clojure.set :as cset]))
+  (:require [clojure.set :as cset]
+            [shams.priority-queue :as pq]))
+
 
 (defn remove-previous-states
   [new-states frontier visited]
   (remove (cset/union (set frontier) (set visited)) new-states))
+
+(def astar-search
+  {:get-next-node first
+   :add-children concat})
+
+(def heuristic-search
+  {:get-next-node first
+   :add-children into})
 
 (def depth-first-search
   {:get-next-node first
@@ -25,9 +35,9 @@
 
 (defn search
   [{:keys [get-next-node add-children]}
-   {:keys [goal? make-children]}
+   {:keys [goal? make-children heuristic]}
    start-node max-calls]
-  (loop [frontier [start-node]
+  (loop [frontier (pq/priority-queue heuristic :elements [start-node] :variant :set)
          came-from {start-node :start-node}
          num-calls 0]
     (println num-calls ": " frontier)
@@ -41,7 +51,7 @@
                     (make-children current-node) frontier (keys came-from))]
           (recur
            (add-children
-            kids
-            (rest frontier))
+            (pop frontier)
+            kids)
            (reduce (fn [cf child] (assoc cf child current-node)) came-from kids)
            (inc num-calls)))))))
