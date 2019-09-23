@@ -23,6 +23,13 @@
    )
   )
 
+  (defn heuristic2
+    [[x y]]
+    (-
+     (+ (Math/pow x 2) (Math/abs y))
+     )
+    )
+
 (defn apply-move
   "Apply a move to a given position, yielding the new position"
   [position move]
