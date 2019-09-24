@@ -1,6 +1,7 @@
 (ns intro-to-ec.search-with-heuristic
   (:require [clojure.set :as cset]
-            [shams.priority-queue :as pq]))
+            [shams.priority-queue :as pq]
+            [clojure.data.priority-map :as pm]))
 
 
 (defn remove-previous-states
@@ -40,7 +41,8 @@
    start-node max-calls]
   (loop [came-from {start-node :start-node}
          cost-so-far {start-node 0}
-         frontier (pq/priority-queue #(+ (heuristic %) (cost-so-far %)) :elements [start-node] :variant :set)
+         frontier (pm/priority-map start-node 0)
+         ;(pq/priority-queue #(+ (heuristic %) (get cost-so-far %)) :elements [start-node] :variant :set)
          num-calls 0]
     (println num-calls ": " frontier)
     (println came-from)
@@ -55,16 +57,26 @@
                           (< (inc (get cost-so-far current-node)) (get cost-so-far %)))
                     (remove-previous-states
                     (make-children current-node) frontier (keys came-from)))]
+          (println "In loop: " cost-so-far)
+          (println kids)
+          (println current-node)
+          ;(println (get cost-so-far current-node))
+          ;(println (pop frontier))
+          ;(println (add-children (pop frontier) kids))
+          (println "We got past into")
           (recur
            (reduce (fn [cf child] (assoc cf child current-node)) came-from kids)
            (reduce
-            (fn [cf child] (assoc cf child current-node))
+            (fn [cf child] (assoc cf child (inc (get cost-so-far current-node))))
             cost-so-far kids)
-           (add-children
-            (pop frontier)
-            kids)
+            ;( #(+ (heuristic %) (get cost-so-far %)) child)
+            (reduce (fn [front child] (assoc front child 0))
+            frontier kids)
+          ; (add-children
+           ;  (pop frontier)
+           ;  kids)
            (inc num-calls)))))))
-https://github.com/umm-csci-3403-fall-2019/lab-2-c-strings-and-memory-management-c-pirates
+
 (defn search
   [{:keys [get-next-node add-children]}
    {:keys [goal? make-children heuristic]}
