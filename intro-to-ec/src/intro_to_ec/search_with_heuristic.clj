@@ -33,7 +33,8 @@
     [node]
     (conj (generate-path came-from (get came-from node)) node)))
 
-(defn astar-search
+;(swh/assearch swh/astar-search (walls/make-grid-problem walls/min-range walls/max-range walls/no-walls) [5 5] 100)
+(defn assearch
   [{:keys [get-next-node add-children]}
    {:keys [goal? make-children heuristic]}
    start-node max-calls]
@@ -43,6 +44,7 @@
          num-calls 0]
     (println num-calls ": " frontier)
     (println came-from)
+    (println get-next-node)
     (let [current-node (get-next-node frontier)]
       (cond
         (goal? current-node) (generate-path came-from current-node)
@@ -55,12 +57,14 @@
                     (make-children current-node) frontier (keys came-from)))]
           (recur
            (reduce (fn [cf child] (assoc cf child current-node)) came-from kids)
-           (reduce (fn [cf child] (assoc cf child current-node)) #(inc (get cost-so-far current-node)) kids)
+           (reduce
+            (fn [cf child] (assoc cf child current-node))
+            cost-so-far kids)
            (add-children
             (pop frontier)
             kids)
            (inc num-calls)))))))
-
+https://github.com/umm-csci-3403-fall-2019/lab-2-c-strings-and-memory-management-c-pirates
 (defn search
   [{:keys [get-next-node add-children]}
    {:keys [goal? make-children heuristic]}
