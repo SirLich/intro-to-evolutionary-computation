@@ -34,6 +34,8 @@
     [node]
     (conj (generate-path came-from (get came-from node)) node)))
 
+; (require '[intro-to-ec.search-with-heuristic :as swh])
+; (require '[intro-to-ec.grid-problem-with-walls :as walls])
 ;(swh/assearch swh/astar-search (walls/make-grid-problem walls/min-range walls/max-range walls/no-walls) [5 5] 100)
 (defn assearch
   [{:keys [get-next-node add-children]}
@@ -46,17 +48,17 @@
          num-calls 0]
     (println num-calls ": " frontier)
     (println came-from)
-    (println get-next-node)
+    (println (first (get-next-node frontier)))
     (let [current-node (get-next-node frontier)]
       (cond
-        (goal? current-node) (generate-path came-from current-node)
+        (goal? (first current-node)) (generate-path came-from current-node)
         (= num-calls max-calls) :max-calls-reached
         :else
         (let [kids (filter
                     #(or (not (contains? cost-so-far %))
                           (< (inc (get cost-so-far current-node)) (get cost-so-far %)))
                     (remove-previous-states
-                    (make-children current-node) frontier (keys came-from)))]
+                    (make-children (first current-node)) frontier (keys came-from)))]
           (println "In loop: " cost-so-far)
           (println kids)
           (println current-node)
@@ -65,13 +67,14 @@
           ;(println (add-children (pop frontier) kids))
           (println "We got past into")
           (recur
-           (reduce (fn [cf child] (assoc cf child current-node)) came-from kids)
+           (reduce (fn [cf child] (assoc cf child (first current-node))) came-from kids)
            (reduce
-            (fn [cf child] (assoc cf child (inc (get cost-so-far current-node))))
+            (fn [cf child] (assoc cf child (inc (get cost-so-far (first current-node)))))
             cost-so-far kids)
             ;( #(+ (heuristic %) (get cost-so-far %)) child)
-            (reduce (fn [front child] (assoc front child 0))
-            frontier kids)
+            (dissoc (reduce (fn [front child] (assoc front child
+                                             (#(+ (heuristic %) (inc (get cost-so-far (first current-node)))) child)))
+            frontier kids) (first current-node))
           ; (add-children
            ;  (pop frontier)
            ;  kids)
